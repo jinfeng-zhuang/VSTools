@@ -1,0 +1,191 @@
+diff --git a/vesdump/Makefile b/vesdump/Makefile
+index b5682b4..cd29f76 100755
+--- a/vesdump/Makefile
++++ b/vesdump/Makefile
+@@ -1,15 +1,17 @@
++INSTALL = Install_SX7B
++
+ export PATH := /opt/p111/armv7a/bin:$(PATH)
+ 
+ CC = armv7a-cros-linux-gnueabi-gcc
+ 
+ INC_DIR = -I ./Inc					\
+-	  -I ./Install/Core/Inc/HAL/AVCore/		\
+-	  -I ./Install/Core/Inc/HAL/Kernel_Driver/	\
+-	  -I ./Install/Core/Inc/HAL/TGE/		\
+-	  -I ./Install/Core/Inc/Utility/TridUtil/	\
+-	  -I ./Install/Core/Inc/HAL/Inc/
++	  -I ./$(INSTALL)/Core/Inc/HAL/AVCore/		\
++	  -I ./$(INSTALL)/Core/Inc/HAL/Kernel_Driver/	\
++	  -I ./$(INSTALL)/Core/Inc/HAL/TGE/		\
++	  -I ./$(INSTALL)/Core/Inc/Utility/TridUtil/	\
++	  -I ./$(INSTALL)/Core/Inc/HAL/Inc/
+ 
+-LIB_DIR = -L ./Install/Core/Lib
++LIB_DIR = -L ./$(INSTALL)/Core/Lib
+ 
+ LIBS := -lUtility	\
+ 	-lCPUComm	\
+diff --git a/vesdump/mem_map.c b/vesdump/mem_map.c
+index 9633f50..c97243f 100755
+--- a/vesdump/mem_map.c
++++ b/vesdump/mem_map.c
+@@ -5,7 +5,69 @@
+ #include <unistd.h>
+ #include <string.h>
+ 
+-static int hidtv_fd;
++#define MAP_SIZE_MAX    (100)
++#define PAGE_SIZE       (0x10000)
++#define PAGE_MASK       (PAGE_SIZE - 1)
++
++struct virt_phy_map {
++    unsigned int virt_start;
++    unsigned int phy_start; // 0xF0000000 => reg flag?
++    unsigned int size; // >= PAGE_SIZE, can be updated
++};
++
++static int hidtv_fd = -1;
++
++static struct virt_phy_map map[MAP_SIZE_MAX];
++static int map_size;
++
++static int phy2virt(const unsigned int phy, unsigned int *virt, const unsigned int len)
++{
++    int i;
++    unsigned int phy_start; 
++    unsigned int phy_end;
++    unsigned int size;
++    unsigned int virtaddr;
++    
++    phy_start = phy & (~PAGE_MASK);
++    phy_end = phy + size;
++    size = (len < PAGE_SIZE) ? PAGE_SIZE : len;
++    
++    for (i = 0; i < map_size; i++) {
++        if ((phy >= map[i].phy_start) && (phy < (map[i].phy_start + map[i].size))) {
++            if ((phy_end >= map[i].start) && (phy_end < (map[i].start + map[i].size))) {
++                virtaddr = map[i].virt_start + phy - map[i].phy_start;
++                goto END;
++            }
++        }
++    }
++    
++    // i == map_size now
++    if (map_size == MAP_SIZE_MAX) {
++        memset(map, 0, sizeof(map));
++        i = 0;
++    }
++    
++    ret = mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_SHARED, hidtv_fd, phy_start);
++    if (0 == ret) {
++        printf("mmap %x:%x failed\n", phy_start, size);
++        goto ERROR;
++    }
++
++    map[i].virt_start = ret;
++    map[i].phy_start = phy_start;
++    map[i].size = size;
++    map_size++;
++
++    virtaddr = map[i].virt_start + phy - phy_start;
++    
++END:
++    *virt = virtaddr;
++    
++    return 0;
++
++ERROR:
++    return -1;
++}
+ 
+ int mem_map_init(void)
+ {
+@@ -18,27 +80,49 @@ int mem_map_init(void)
+     return 0;
+ }
+ 
+-unsigned char *mem_map(unsigned int addr, unsigned int size)
++int mem_read(const unsigned int phyaddr, unsigned char *buffer, const unsigned int size)
+ {
+-    if (hidtv_fd == -1) {
+-        printf("hidtv not inited\n");
+-        return NULL;
+-    }
++    unsigned int virtaddr;
++    unsigned int value;
++    int ret;
+ 
+-    if (addr & 0xFFFF) {
+-        printf("mem map MUST align to 0x10000\n");
+-        return NULL;
++    ret = phy2virt(phyaddr, &virtaddr, size);
++    if (-1 == ret) {
++        return -1;
+     }
++    
++    memcpy(buffer, virtaddr, size);
++    
++    return 0;
++}
+ 
+-    if (size < 0x10000)
+-        size = 0x10000;
++int mem_write(const unsigned int phyaddr, const unsigned char *buffer, const unsigned int size)
++{
++    unsigned int virtaddr;
++    unsigned int value;
++    int ret;
+ 
+-    unsigned char *memory = mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_SHARED, hidtv_fd, addr);
+-    if (-1 == (unsigned int)memory) {
+-        printf("mmap failed %d\n", errno);
+-        return NULL;
++    ret = phy2virt(phyaddr, &virtaddr, size);
++    if (-1 == ret) {
++        return -1;
+     }
++    
++    memcpy(virtaddr, buffer, size);
++    
++    return 0;
++}
++
++unsigned int reg_read(const unsigned int phyaddr)
++{
++    unsigned int value;
++    
++    mem_read(phyaddr, &value, 4);
++    
++    return value;
++}
+ 
+-    return memory;
++void reg_write(const unsigned int phyaddr, const unsigned int value)
++{
++    mem_write(phyaddr, &value, 4);
+ }
+ 
+diff --git a/vesdump/vesdump.h b/vesdump/vesdump.h
+index d04a1cb..4eb4998 100755
+--- a/vesdump/vesdump.h
++++ b/vesdump/vesdump.h
+@@ -36,14 +36,16 @@ typedef struct _tagCPUFuncCallReturn {
+     trid_uint32 Param[CPU_COMM_PARAMCOUNT_MAX]; /**< param array */
+ } Trid_CPUFuncCall_Return_t;
+ 
+-
+ RETURN_TYPE Trid_Util_CPUComm_Init(trid_bool reserved);
+ 
+ #define Trid_Util_CPUComm_CallSlave Trid_Util_CPUComm_Call
+ RETURN_TYPE Trid_Util_CPUComm_Call(const trid_char* FuncName, Trid_CPUFuncCall_Param_t* pCallParam, Trid_CPUFuncCall_Return_t* pCallReturn);
+ 
+ extern int mem_map_init(void);
+-extern unsigned char *mem_map(unsigned int addr, unsigned int size);
++extern int mem_read(const unsigned int phyaddr, unsigned char *buffer, const unsigned int size);
++extern int mem_write(const unsigned int phyaddr, const unsigned char *buffer, const unsigned int size);
++extern unsigned int reg_read(const unsigned int phyaddr);
++extern void reg_write(const unsigned int phyaddr, const unsigned int value);
+ 
+ extern void pman_disable(void);
+ 
