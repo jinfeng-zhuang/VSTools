@@ -1,15 +1,16 @@
+INSTALL = Install_SX7B
 export PATH := /opt/p111/armv7a/bin:$(PATH)
 
 CC = armv7a-cros-linux-gnueabi-gcc
 
 INC_DIR = -I ./Inc					\
-	  -I ./Install/Core/Inc/HAL/AVCore/		\
-	  -I ./Install/Core/Inc/HAL/Kernel_Driver/	\
-	  -I ./Install/Core/Inc/HAL/TGE/		\
-	  -I ./Install/Core/Inc/Utility/TridUtil/	\
-	  -I ./Install/Core/Inc/HAL/Inc/
+	  -I ./$(INSTALL)/Core/Inc/HAL/AVCore/		\
+	  -I ./$(INSTALL)/Core/Inc/HAL/Kernel_Driver/	\
+	  -I ./$(INSTALL)/Core/Inc/HAL/TGE/		\
+	  -I ./$(INSTALL)/Core/Inc/Utility/TridUtil/	\
+	  -I ./$(INSTALL)/Core/Inc/HAL/Inc/
 
-LIB_DIR = -L ./Install/Core/Lib
+LIB_DIR = -L ./$(INSTALL)/Core/Lib
 
 LIBS := -lUtility	\
 	-lCPUComm	\
@@ -30,10 +31,9 @@ LIBS := -lUtility	\
 	-lstdc++
 
 all: vesdump
-	echo ""
 
 clean:
 	rm vesdump
 
-vesdump: vesdump.c pman.c mem_map.c
+vesdump: vesdump.c pman.c mem_map.c udpsvr.c
 	$(CC) -o $@ $^ $(LIB_DIR) $(LIBS) $(INC_DIR) -D CONFIG_ENDIAN_LITTLE

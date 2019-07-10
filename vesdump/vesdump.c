@@ -15,6 +15,12 @@ enum {
 
 #define SAMPLE_US   (1000*1000) // about 400KB
 
+#define SAMPLE_LIMIT  (50<<20)
+
+#define HAL_BUF_SIZE   128
+
+static unsigned char hal_buf[HAL_BUF_SIZE];
+
 unsigned int desc_v_base;
 unsigned char *es_v_base;
 
@@ -25,6 +31,46 @@ struct desc {
     unsigned int rd;
 };
 
+#if 0
+
+struct local_desc {
+    unsigned int start;
+    unsigned int end;
+    unsigned int wr;
+    unsigned int rd;
+};
+
+struct avmips_desc {
+    unsigned int start;
+    unsigned int end;
+    unsigned int wr;
+    unsigned int rd;
+};
+
+struct demux_desc {
+    unsigned int wr;
+    unsigned int rd;
+    unsigned int start;
+    unsigned int end;
+};
+
+void capture_desc(struct local_desc *desc, void *addr, int demux_flag)
+{
+    if (demux_flag) {
+        desc->start = (struct demux_desc *)addr->start;
+        desc->end = (struct demux_desc *)addr->end;
+        desc->wr = (struct demux_desc *)addr->wr;
+        desc->rd = (struct demux_desc *)addr->rd;
+    }
+    else {
+        desc->start = (struct avmips_desc *)addr->start;
+        desc->end = (struct avmips_desc *)addr->end;
+        desc->wr = (struct avmips_desc *)addr->wr;
+        desc->rd = (struct avmips_desc *)addr->rd;
+    }
+}
+#endif
+
 #define SIZE_1MB    (1<<20)
 #define SIZE_1KB    (1<<10)
 
@@ -32,12 +78,14 @@ int main(int argc, char *argv[])
 {
     int ret;
     int i;
-    char *filename;
+    char *dir;
+    int filecnt = 0;
+    char filename[32];
 
     Trid_CPUFuncCall_Param_t CallParam;
     Trid_CPUFuncCall_Return_t CallReturn;
 
-    FILE *fp;
+    FILE *fp = NULL;
 
     struct desc *desc;
     unsigned int wr_prev;
@@ -51,17 +99,11 @@ int main(int argc, char *argv[])
     int demux_flag = 0;
 
     if (argc != 2) {
-        printf("Usage: %s [filename]\n", argv[0]);
+        printf("Usage: %s [directory]\n", argv[0]);
         return 0;
     }
 
-    filename = argv[1];
-
-    fp = fopen(filename, "wb");
-    if (NULL == fp) {
-        printf("Can't open %s\n", filename);
-        return -1;
-    }
+    dir = argv[1];
 
     if (0 != mem_map_init())
         return -1;
@@ -124,6 +166,8 @@ int main(int argc, char *argv[])
     if (!demux_flag)
         local_desc.end += 1;
 
+    wr_prev = local_desc.start;
+
     // patch, demux return DDR addr, avmips return PHY addr(-0x30000000)?
     if (!demux_flag)
         es_v_base = (unsigned char *)(local_desc.start - 0x30000000);
@@ -131,11 +175,6 @@ int main(int argc, char *argv[])
         es_v_base = (unsigned char *)(local_desc.start);
 
     es_v_base = mem_map((unsigned int)es_v_base, local_desc.end - local_desc.start);
-
-    if (!demux_flag)
-        wr_prev = local_desc.start;
-    else
-        wr_prev = local_desc.wr;
 
     if (demux_flag) {
         while ((desc->start & 0x3FFFFFFF) == wr_prev)
@@ -146,18 +185,48 @@ int main(int argc, char *argv[])
     unsigned int data_write;
 
     while (1) {
+        usleep(SAMPLE_US);
+
+        if (hal_recv(hal_buf, HAL_BUF_SIZE, SAMPLE_US) > 0) {
+            // close old file
+            if (NULL != fp) {
+                printf("Record %s (%d MB) done.\n", filename, ftell(fp)>>20);
+                fclose(fp);
+                fp = NULL;
+            }
+
+            // create new file every time
+            sprintf(filename, "%s/dump-%03d.es", dir, filecnt);
+
+            fp = fopen(filename, "wb");
+            if (NULL == fp) {
+                printf("Can't open %s\n", filename);
+                break;
+            }
+            else {
+                printf("Record %s started\n", filename);
+                filecnt++;
+            }
+
+            wr_prev = local_desc.start;
+        }
+
+        // trigger at first loop
+        if (NULL == fp) {
+            continue;
+        }
+
         if (demux_flag)
             wr_cur = desc->start & 0x3FFFFFFF;
         else
             wr_cur = desc->wr;
 
+        // !!! local start
         offset = wr_prev - local_desc.start;
-
-        printf("%x %x\n", wr_prev, wr_cur);
 
         if (wr_cur >= wr_prev) {
             sample_size = wr_cur - wr_prev;
-            printf("sample size %d KB\n", sample_size >> 10);
+            printf("%d MB + %d KB (%s)\n", sample_total>>20, sample_size >> 10, filename);
             data_write = fwrite(&es_v_base[offset], sizeof(unsigned char), sample_size, fp);
             fflush(fp);
             if (data_write != sample_size)
@@ -165,7 +234,7 @@ int main(int argc, char *argv[])
         }
         else {
             sample_size = local_desc.end - wr_prev + wr_cur - local_desc.start;
-            printf("(L)sample size %d KB\n", sample_size >> 10);
+            printf("(Wrap) %d MB + %d KB (%s)\n", sample_total>>20, sample_size >> 10, filename);
             data_write = fwrite(&es_v_base[offset], sizeof(unsigned char), local_desc.end - wr_prev, fp);
             data_write += fwrite(es_v_base, sizeof(unsigned char), wr_cur - local_desc.start, fp);
             fflush(fp);
@@ -175,24 +244,20 @@ int main(int argc, char *argv[])
 
         sample_total += sample_size;
 
+        if (sample_total >= SAMPLE_LIMIT) {
+            printf("sample limit to %d MB\n", SAMPLE_LIMIT);
+            break;
+        }
+
         wr_prev = wr_cur;
 
-        if (0 == sample_size)
-            break;
-
-        usleep(SAMPLE_US);
     }
 
-    file_size = ftell(fp);
-
-    if (file_size >= SIZE_1MB)
-        printf("es data size: %d MB\n", file_size >> 20);
-    else if (file_size >= SIZE_1KB)
-        printf("es data size: %d KB\n", file_size >> 10);
-    else
-        printf("es data size: %d bytes\n", file_size);
-
-    fclose(fp);
+    if (NULL != fp) {
+        printf("Record %s (%d MB) done.\n", filename, ftell(fp)>>20);
+        fclose(fp);
+        fp = NULL;
+    }
 
     return 0;
 }
