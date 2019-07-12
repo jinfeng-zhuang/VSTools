@@ -20,25 +20,24 @@ int mem_map_init(void)
 
 unsigned char *mem_map(unsigned int addr, unsigned int size)
 {
+    unsigned int realsize;
+
     if (hidtv_fd == -1) {
         printf("hidtv not inited\n");
         return NULL;
     }
 
-    if (addr & 0xFFFF) {
-        printf("mem map MUST align to 0x10000\n");
-        return NULL;
-    }
+    realsize = (addr & 0xFFFF) + size;
 
     if (size < 0x10000)
         size = 0x10000;
 
-    unsigned char *memory = mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_SHARED, hidtv_fd, addr);
+    unsigned char *memory = mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_SHARED, hidtv_fd, addr & 0xFFFF0000);
     if (-1 == (unsigned int)memory) {
         printf("mmap failed %d\n", errno);
         return NULL;
     }
 
-    return memory;
+    return memory + (addr & 0xFFFF);
 }
 
