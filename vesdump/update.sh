@@ -1,8 +1,11 @@
 #!/bin/sh
 
-export P111TV=10.86.79.108
-padb cn
-padb remount
-padb push ./vesdump /data
-padb shell sync
-padb dcn
+ADB=padb
+
+export P111TV=10.86.79.94
+
+$ADB cn
+$ADB remount
+$ADB push ./printmsg /data
+$ADB shell sync
+$ADB dcn

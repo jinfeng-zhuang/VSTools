@@ -47,6 +47,8 @@ extern unsigned char *mem_map(unsigned int addr, unsigned int size);
 
 extern void pman_disable(void);
 
+extern unsigned int comm_get_addr(int index);
+
 typedef unsigned long HW_DWORD;
 
 typedef struct {

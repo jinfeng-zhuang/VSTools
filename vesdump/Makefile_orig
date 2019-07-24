@@ -1,0 +1,55 @@
+# http://sh-swbuild-01:8080/jenkins/view/UNION1/job/UNION1-SDK_DailyBuild/lastSuccessfulBuild/artifact/DCP_SYS/misc/Install.tgz
+
+INSTALL = Install_UN1
+export PATH := /opt/p111/armv7a/bin:$(PATH)
+
+CC = armv7a-cros-linux-gnueabi-gcc
+
+INC_DIR = -I ./Inc					\
+	  -I ./$(INSTALL)/Core/Inc/HAL/AVCore/		\
+	  -I ./$(INSTALL)/Core/Inc/HAL/Kernel_Driver/	\
+	  -I ./$(INSTALL)/Core/Inc/HAL/TGE/		\
+	  -I ./$(INSTALL)/Core/Inc/Utility/TridUtil/	\
+	  -I ./$(INSTALL)/Core/Inc/HAL/Inc/
+
+LIB_DIR = -L ./$(INSTALL)/Core/Lib
+
+LIBS := -lUtility	\
+	-lCPUComm	\
+	-lhalvideo	\
+	-lhalavstream	\
+	-lhalavsync	\
+	-lDemux		\
+	-lhalsound	\
+	-lDisplay	\
+	-lHalSPI	\
+	-lTridXMLParser	\
+	-lhalcom	\
+	-lhalcp		\
+	-lpthread	\
+	-lm		\
+	-lrt		\
+	-lstdc++
+
+all: vesdump esdesc frameq avsync format printmsg
+
+clean:
+	rm vesdump
+
+vesdump: vesdump.c pman.c mem_map.c udpsvr.c
+	$(CC) -o $@ $^ $(LIB_DIR) $(LIBS) $(INC_DIR) -D CONFIG_ENDIAN_LITTLE
+
+esdesc: esdesc.c pman.c mem_map.c udpsvr.c comm_get_addr.c
+	$(CC) -o $@ $^ $(LIB_DIR) $(LIBS) $(INC_DIR) -D CONFIG_ENDIAN_LITTLE
+
+avsync: avsync.c pman.c mem_map.c udpsvr.c comm_get_addr.c
+	$(CC) -o $@ $^ $(LIB_DIR) $(LIBS) $(INC_DIR) -D CONFIG_ENDIAN_LITTLE
+
+format: format.c pman.c mem_map.c udpsvr.c comm_get_addr.c
+	$(CC) -o $@ $^ $(LIB_DIR) $(LIBS) $(INC_DIR) -D CONFIG_ENDIAN_LITTLE
+
+printmsg: printmsg.c pman.c mem_map.c udpsvr.c comm_get_addr.c
+	$(CC) -o $@ $^ $(LIB_DIR) $(LIBS) $(INC_DIR) -D CONFIG_ENDIAN_LITTLE
+
+frameq: frameq.c pman.c mem_map.c udpsvr.c
+	$(CC) -o $@ $^ $(LIB_DIR) $(LIBS) $(INC_DIR) -D CONFIG_ENDIAN_LITTLE
