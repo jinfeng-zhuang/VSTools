@@ -20,17 +20,23 @@ int Trid_Util_CPUComm_Call(const char *name, Trid_CPUFuncCall_Param_t *request, 
     if ((NULL == name) || (NULL == request) || (NULL == response))
         goto IOERROR;
 
-    sprintf(func_name, "%s_%1lx_%3.3lx", name, request->Connection.targetCPU, request->Connection.targetTokenPid & 0xFFF);
+    memset(response, 0, sizeof(Trid_CPUFuncCall_Return_t));
+
+    memset(func_name, 0, COMM_FUNC_NAME_LEN_MAX);
+    snprintf(func_name, COMM_FUNC_NAME_LEN_MAX, "%s_%1lx_%3.3lx", name, request->Connection.targetCPU, request->Connection.targetTokenPid & 0xFFF);
 
     func_id = Trid_Util_CRC32(0x123456, func_name, strlen(func_name));
 
-    while (!cpu_comm_is_ready(g_comm_fd))
+    while (!cpu_comm_is_ready(g_comm_fd)) {
+        printf("cpu comm not ready\n");
         usleep(10*1000);
+    }
 
+    memset(&callparam, 0, sizeof(CommParam_t));
     callparam.Attribute = 0;
     callparam.FunctionID = func_id;
     callparam.pid = getpid();
-    callparam.sourcepid = getpid();
+    callparam.sourcepid = getpid(); // TODO: any difference of pid ?
     callparam.ParamCount = request->Count;
     for (i = 0; i< callparam.ParamCount; i++)
         callparam.Param[i] = request->Param[i];
