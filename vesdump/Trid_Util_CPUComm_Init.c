@@ -12,6 +12,7 @@ static CPUCommShMemMap_t ShMemMap[2];
 
 int Trid_Util_CPUComm_Init(void)
 {
+    int ret;
     unsigned int virtaddr;
 
     if (-1 != g_comm_fd)
@@ -23,11 +24,21 @@ int Trid_Util_CPUComm_Init(void)
         goto IOERROR;
     }
 
-    ioctl_b(g_comm_fd, CPU_COMM_GET_MEM_MAP_INFO, &ShMemMap[0]);
-    ioctl_b(g_comm_fd, CPU_COMM_GET_MEM_MAP_INFO, &ShMemMap[1]);
+    ret = ioctl_b(g_comm_fd, CPU_COMM_GET_MEM_MAP_INFO, &ShMemMap[0]);
+    if (0 != ret)
+        goto IOERROR;
+
+    ret = ioctl_b(g_comm_fd, CPU_COMM_GET_MEM_MAP_INFO, &ShMemMap[1]);
+    if (0 != ret)
+        goto IOERROR;
 
     if ((0 == ShMemMap[0].MemPhyAddr) || (0 == ShMemMap[1].MemPhyAddr))
         goto IOERROR;
+
+    /* 'Share Memory' is the share area of all cpus.
+     * Compatible mode.
+     * SX7B: ShMemMap[0] = ShMemMap[1]: phy ea00000 virt 78000000 size 1600000
+     */
 
     printf("ShMemMap[0]: phy %x virt %x size %x\n", ShMemMap[0].MemPhyAddr, ShMemMap[0].MemVirtAddr, ShMemMap[0].MemSize);
     printf("ShMemMap[1]: phy %x virt %x size %x\n", ShMemMap[1].MemPhyAddr, ShMemMap[1].MemVirtAddr, ShMemMap[1].MemSize);
