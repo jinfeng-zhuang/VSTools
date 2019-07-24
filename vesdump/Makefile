@@ -17,5 +17,5 @@ all: printmsg
 clean:
 	rm vesdump
 
-printmsg: printmsg.c pman.c mem_map.c udpsvr.c comm_get_addr.c Trid_Util_CPUComm_Call.c Trid_Util_CPUComm_Init.c Trid_Util_CRC32.c
+printmsg: printmsg.c pman.c mem_map.c udpsvr.c comm_get_addr.c Trid_Util_CPUComm_Call.c Trid_Util_CPUComm_Init.c Trid_Util_CRC32.c cpu_comm_is_ready.c
 	$(CC) -o $@ $^ $(LIB_DIR) $(LIBS) $(INC_DIR) -D CONFIG_ENDIAN_LITTLE

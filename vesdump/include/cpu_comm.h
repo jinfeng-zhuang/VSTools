@@ -8,6 +8,19 @@
 
 #define CPU_COMM_PARAMCOUNT_MAX 10
 
+enum {
+    CPU_STATE_RESET = -1,
+    CPU_STATE_NOT_READY = 0,
+    CPU_STATE_READY = 1
+};
+
+enum {
+    CPU_PLF = 0,
+    CPU_AV,
+    CPU_DISP,
+    CPU_MAX_NONE
+};
+
 typedef struct _tagCommParam {
     volatile unsigned short channelId;
     volatile unsigned short tgetCPU;

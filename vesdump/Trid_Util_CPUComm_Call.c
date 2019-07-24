@@ -8,43 +8,6 @@ extern int g_comm_fd;
 
 #define COMM_FUNC_NAME_LEN_MAX 64
 
-enum {
-    CPU_STATE_RESET = -1,
-    CPU_STATE_NOT_READY = 0,
-    CPU_STATE_READY = 1
-};
-
-enum {
-    CPU_PLF = 0,
-    CPU_AV,
-    CPU_DISP,
-    CPU_MAX_NONE
-};
-
-int cpu_comm_is_ready(int fd)
-{
-    int ret;
-    CPUStateInfo info;
-
-    if (-1 == fd)
-        goto NOT_READY;
-
-    info.cpuID = CPU_MAX_NONE;
-    info.act   = CPU_STATE_APP_READY_GET;
-
-    ret = ioctl_b(fd, CPU_COMM_CPU_STATE, &info);
-    if (0 != ret)
-        goto NOT_READY;
-
-    if (info.state != CPU_STATE_READY)
-        goto NOT_READY;
-
-    return 1;
-
-NOT_READY:
-    return 0;
-}
-
 int Trid_Util_CPUComm_Call(const char *name, Trid_CPUFuncCall_Param_t *request, Trid_CPUFuncCall_Return_t *response)
 {
     int ret;
