@@ -4,6 +4,8 @@
 #include "ioctl.h"
 #include "list.h"
 
+#define NUCLEUS_PID 0
+
 #define HIDTV_CPU_COMM_MAGIC ('2' | 'N' | 'D' | 'C' | 'P' | 'U')
 
 #define CPU_COMM_PARAMCOUNT_MAX 10
@@ -86,5 +88,9 @@ typedef struct _tagGetReturnInfo {
 #define CPU_COMM_GET_SLAVE_RESP     _IOWR(HIDTV_CPU_COMM_MAGIC, 0x04, CommParam_t*)
 #define CPU_COMM_GET_MEM_MAP_INFO   _IOWR(HIDTV_CPU_COMM_MAGIC, 0x13, CPUCommShMemMap_t*)
 #define CPU_COMM_CPU_STATE          _IOWR(HIDTV_CPU_COMM_MAGIC, 0x21, CPUStateInfo *)
+
+extern int Trid_Util_CPUComm_Init(void);
+extern int Trid_Util_CPUComm_Call(const char* FuncName, Trid_CPUFuncCall_Param_t* pCallParam, Trid_CPUFuncCall_Return_t* pCallReturn);
+extern unsigned int comm_get_addr(int index);
 
 #endif

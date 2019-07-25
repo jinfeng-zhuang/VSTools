@@ -8,21 +8,10 @@
 #include <semaphore.h>
 #include <string.h>
 
-#include "vesdump.h"
-
-extern unsigned int Trid_Util_CRC32(unsigned long val, const void* ss, int len);
+#include "crc.h"
+#include "log.h"
 
 #define SAMPLE_US   (1000*1000) // about 400KB
-
-typedef struct {
-    int bIsEnable;
-    int trace_level; /* control the print level */
-    int total_num;
-    int rd_idx;
-    int wr_idx;
-    char message[512][256];
-    int b3rdInit;
-} triSlavePrint_t;
 
 unsigned int channel;
 

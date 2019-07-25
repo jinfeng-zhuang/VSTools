@@ -5,12 +5,12 @@ export PATH := /opt/p111/armv7a/bin:$(PATH)
 
 CC = armv7a-cros-linux-gnueabi-gcc
 
-INC_DIR = -I ./Inc					\
+INC_DIR = -I ./include					\
 	  -I ./$(INSTALL)/Core/Inc/HAL/AVCore/		\
 	  -I ./$(INSTALL)/Core/Inc/HAL/Kernel_Driver/	\
 	  -I ./$(INSTALL)/Core/Inc/HAL/TGE/		\
 	  -I ./$(INSTALL)/Core/Inc/Utility/TridUtil/	\
-	  -I ./$(INSTALL)/Core/Inc/HAL/Inc/
+	  -I ./$(INSTALL)/Core/Inc/HAL/Inc/		\
 
 all: printmsg
 

@@ -5,7 +5,7 @@
 #include <unistd.h>
 #include <string.h>
 
-#include "vesdump.h"
+#include "cpu_comm.h"
 
 #define SAMPLE_US   (1000*1000) // about 400KB
 
@@ -31,8 +31,8 @@ unsigned int comm_get_addr(int index)
 
     while (1) {
         memset(&CallReturn, 0, sizeof(Trid_CPUFuncCall_Return_t));
-        ret = Trid_Util_CPUComm_CallSlave("RegTest", &CallParam, &CallReturn);
-        if (ret == SYS_NOERROR) {
+        ret = Trid_Util_CPUComm_Call("RegTest", &CallParam, &CallReturn);
+        if (0 == ret) {
             if (CallReturn.Param[1] != 0) {
                 break;
             }
