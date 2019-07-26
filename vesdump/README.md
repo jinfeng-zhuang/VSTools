@@ -2,15 +2,22 @@
 
 ## Design
 
-The threads does the simple things, make the logic simple.
+* The threads does the simple things, make the logic simple.
 
-## TODO
+## Usage
 
-* get pts descriptor with dbgserver? or directly with HAL library
-* add pts support in sx7b
-* check dtv start event by check register?
+By default, vstool dump some important information.
 
-## TIPS
+* print log
+    
+    avtool --log "device:2,default:1"
 
-We can start capture without channel change, use UDP tool send any data to the TV with port 8000.
+* avsync
+
+    avtool --avsync --channel 0
+
+* step frame
+
+    avtool --step [start | stop | forward] --channel 0
+
 

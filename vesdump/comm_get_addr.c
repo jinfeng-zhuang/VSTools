@@ -38,7 +38,7 @@ unsigned int comm_get_addr(int index)
             }
         }
         usleep(SAMPLE_US);
-        printf("ret %d %x waiting for desc ready...\n", ret, CallReturn.Param[1]);
+        printf("CPUComm_Call return %d, address = %x\n", ret, CallReturn.Param[1]);
     }
 
     return CallReturn.Param[1];

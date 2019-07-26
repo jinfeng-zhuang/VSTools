@@ -7,7 +7,7 @@
 #include <pthread.h>
 #include <semaphore.h>
 
-#include "vesdump.h"
+#include "cpu_comm.h"
 
 #define SAMPLE_US   (1000*1000) // about 400KB
 
@@ -80,7 +80,7 @@ void descriptor_get(struct local_desc *desc, struct local_desc *pts_desc)
     }
 }
 
-int main(int argc, char *argv[])
+int func_esdesc(int channel)
 {
     int ret;
     struct local_desc desc;
@@ -91,25 +91,10 @@ int main(int argc, char *argv[])
     
     ret = 0;
 
-    if (argc != 2) {
-        printf("Usage:\n");
-        printf("\t%s [CHANNEL]\n", argv[0]);
-        return 0;
-    }
-
-    g_sample_limit = atoi(argv[1]);
-
-    if (0 != mem_map_init())
-        return -1;
-
-    pman_disable();
-    
-    Trid_Util_CPUComm_Init(0);
-    
-    if (g_sample_limit == 1) {
+    if (channel == 1) {
         es_desc_addr = comm_get_addr(11 | 1<<6);
     }
-    else if (g_sample_limit == 0) {
+    else if (channel == 0) {
         es_desc_addr = comm_get_addr(11);
     }
     else {
@@ -125,10 +110,8 @@ int main(int argc, char *argv[])
 
     g_es_descriptor = (unsigned int)mem_map(es_desc_addr & 0xFFFF0000, 0x10000) + (es_desc_addr & 0x0000FFFF);
     
-    g_pts_descriptor = (unsigned int)mem_map(0xF5093F54 & 0xFFFF0000, 0x10000) + (0xF5093F54 & 0x0000FFFF);
-
     while (1) {
-        descriptor_get(&desc, &pts_desc);
+        descriptor_get(&desc, NULL);
 
         if (desc.wp >= desc.rp)
             used = desc.wp - desc.rp;
