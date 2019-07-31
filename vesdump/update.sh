@@ -2,10 +2,10 @@
 
 ADB=padb
 
-export P111TV=10.86.79.94
+export P111TV=10.86.79.109
 
 $ADB cn
 $ADB remount
-$ADB push ./printmsg /data
+$ADB push ./avtool /data
 $ADB shell sync
 $ADB dcn

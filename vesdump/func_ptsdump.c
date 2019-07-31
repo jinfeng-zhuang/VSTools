@@ -48,6 +48,7 @@ struct demux_desc {
 unsigned int *g_pts_descriptor;
 unsigned char *g_pts_buffer;
 unsigned int g_sample_total;
+static char directory[64];
 
 void pts_descriptor_get(struct local_desc *desc, struct local_desc *pts_desc)
 {
@@ -110,7 +111,7 @@ void *pts_dump_thread(void *args)
     if (NULL == args)
         return NULL;
 
-    filename = (char *)args;
+    filename = "dump.pts";
     fp = NULL;
     memset(&desc_prev, 0, sizeof(struct local_desc));
     memset(&desc_cur, 0, sizeof(struct local_desc));
@@ -152,19 +153,21 @@ void *pts_dump_thread(void *args)
     return NULL;
 }
 
-int func_ptsdump(int channel, const char *filename)
+int func_ptsdump(int channel, const char *homedir)
 {
     pthread_t pid;
     unsigned int ddr_addr;
     struct local_desc pts_desc;
     
-    if (filename == NULL)
-        return -1;
+    if (NULL == homedir) {
+        strncpy(directory, "/tmp", sizeof(directory));
+    }   
+    else {
+        strncpy(directory, homedir, sizeof(directory));
+    } 
     
     if ((channel != 0) && (channel != 1))
         return -1;
-    
-    printf("ptsdump %d %s\n", channel, filename);
     
     // SX7B don't have pts buffer, as malone use PES
     if (0 == channel)
@@ -183,7 +186,7 @@ int func_ptsdump(int channel, const char *filename)
     // get buffer
     g_pts_buffer = mem_map((unsigned int)pts_desc.start, pts_desc.end - pts_desc.start);
 
-    pthread_create(&pid, NULL, pts_dump_thread, (void *)filename);
+    pthread_create(&pid, NULL, pts_dump_thread, NULL);
 
     while (1)
     {

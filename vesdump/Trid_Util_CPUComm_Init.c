@@ -40,9 +40,6 @@ int Trid_Util_CPUComm_Init(void)
      * SX7B: ShMemMap[0] = ShMemMap[1]: phy ea00000 virt 78000000 size 1600000
      */
 
-    printf("ShMemMap[0]: phy %x virt %x size %x\n", ShMemMap[0].MemPhyAddr, ShMemMap[0].MemVirtAddr, ShMemMap[0].MemSize);
-    printf("ShMemMap[1]: phy %x virt %x size %x\n", ShMemMap[1].MemPhyAddr, ShMemMap[1].MemVirtAddr, ShMemMap[1].MemSize);
-
     virtaddr = (unsigned int)mmap((void *)ShMemMap[0].MemVirtAddr, ShMemMap[0].MemSize, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_FIXED, g_comm_fd, ShMemMap[0].MemPhyAddr);
     if (virtaddr != ShMemMap[0].MemVirtAddr)
         goto IOERROR;
