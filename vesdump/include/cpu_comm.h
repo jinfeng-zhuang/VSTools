@@ -9,6 +9,7 @@
 #define HIDTV_CPU_COMM_MAGIC ('2' | 'N' | 'D' | 'C' | 'P' | 'U')
 
 #define CPU_COMM_PARAMCOUNT_MAX 10
+#define COMM_FUNC_NAME_LEN_MAX  64
 
 enum {
     CPU_STATE_RESET = -1,
@@ -84,13 +85,31 @@ typedef struct _tagGetReturnInfo {
     unsigned int SessionID;
 } GetReturnInfo, *pGetReturnInfo;
 
+typedef void (*funcCPUComm)(void);
+
+typedef struct _tagRoutineItem {
+    unsigned short ChanID;
+    unsigned short TargetCPU;
+    int pid;
+    unsigned long FuncID;
+    char FuncName[COMM_FUNC_NAME_LEN_MAX];
+    funcCPUComm pRoutine;
+    int NewBGToken;
+    int nextIndex;
+} RoutineItem, *pRoutineItem;
+
 #define CPU_COMM_SEND_MASTER_CALL   _IOWR(HIDTV_CPU_COMM_MAGIC, 0x01, CommParam_t*)
 #define CPU_COMM_GET_SLAVE_RESP     _IOWR(HIDTV_CPU_COMM_MAGIC, 0x04, CommParam_t*)
 #define CPU_COMM_GET_MEM_MAP_INFO   _IOWR(HIDTV_CPU_COMM_MAGIC, 0x13, CPUCommShMemMap_t*)
 #define CPU_COMM_CPU_STATE          _IOWR(HIDTV_CPU_COMM_MAGIC, 0x21, CPUStateInfo *)
+#define CPU_COMM_INSTALL_ROUNTINE   _IOWR(HIDTV_CPU_COMM_MAGIC, 0x30, RoutineItem *)
 
 extern int Trid_Util_CPUComm_Init(void);
 extern int Trid_Util_CPUComm_Call(const char* FuncName, Trid_CPUFuncCall_Param_t* pCallParam, Trid_CPUFuncCall_Return_t* pCallReturn);
 extern unsigned int comm_get_addr(int index);
+
+typedef void (*CPURoutine_t)(Trid_CPUFuncCall_Param_t* pCallParam, Trid_CPUFuncCall_Return_t* pReturnParam);
+
+extern int Trid_Util_CPUComm_InstallRoutine(const char* FuncName, CPURoutine_t pRoutine, int TokenPid, int channel);
 
 #endif

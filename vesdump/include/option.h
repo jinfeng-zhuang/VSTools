@@ -11,7 +11,7 @@ struct option_t {
 
 extern struct option_t g_option;
 
-extern void option_process(int argc, char *argv[]);
+extern int option_process(int argc, char *argv[]);
 
 extern void print_usage(const char *name);
 

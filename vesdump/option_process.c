@@ -26,7 +26,7 @@ void print_usage(const char *name)
     printf("Usage: %s --vesdump [0|1] --ptsdump [0|1] --homedir \"/data\"\n", name);
 }
 
-void option_process(int argc, char *argv[])
+int option_process(int argc, char *argv[])
 {
     int opt;
     int value;
@@ -61,9 +61,13 @@ void option_process(int argc, char *argv[])
         }
     }
 
-    return;
+    if (0 == strlen(g_option.homedir))
+        strncpy(g_option.homedir, "/tmp", sizeof(g_option.homedir));
+
+    return 0;
 
 USAGE:
     print_usage(argv[0]);
+    return -1;
 }
 

@@ -1,28 +1,13 @@
 #include <stdio.h>
-#include <string.h>
+#include <sys/mman.h>
+#include <fcntl.h>
+#include <errno.h>
 #include <unistd.h>
 #include <string.h>
 #include <pthread.h>
+#include <semaphore.h>
 
 #define SAMPLE_US   (1000*1000) // about 400KB
-
-#define HAL_BUF_SIZE   128
-
-#define SIZE_1MB    (1<<20)
-#define SIZE_1KB    (1<<10)
-
-enum {
-    TYPE_BYTE,
-    TYPE_HALFWORD,
-    TYPE_WORD
-};
-
-struct pts_desc {
-    unsigned int wp;
-    unsigned int rp;
-    unsigned int start;
-    unsigned int end;
-};
 
 struct local_desc {
     unsigned int start;
@@ -31,26 +16,29 @@ struct local_desc {
     unsigned int rp;
 };
 
-struct avmips_desc {
-    unsigned int start;
-    unsigned int end;
-    unsigned int wp;
-    unsigned int rp;
-};
-
-struct demux_desc {
-    unsigned int wp;
-    unsigned int rp;
+struct pts_desc {
+    unsigned int wp; 
+    unsigned int rp; 
     unsigned int start;
     unsigned int end;
 };
 
-unsigned int *g_pts_descriptor;
-unsigned char *g_pts_buffer;
-unsigned int g_sample_total;
+//=================================================================================================
+// Variable
+//=================================================================================================
+
+static int g_dtv_flag;
+static unsigned int *g_pts_descriptor;
+static unsigned char *g_pts_buffer;
+static unsigned int g_sample_total;
+static sem_t sem_es;
 static char directory[64];
 
-void pts_descriptor_get(struct local_desc *desc, struct local_desc *pts_desc)
+//=================================================================================================
+// Function
+//=================================================================================================
+
+static void descriptor_get(struct local_desc *desc, struct local_desc *pts_desc)
 {
     if (pts_desc != NULL) {
         pts_desc->start = ((struct pts_desc *)g_pts_descriptor)->start;
@@ -60,7 +48,7 @@ void pts_descriptor_get(struct local_desc *desc, struct local_desc *pts_desc)
     }
 }
 
-int take_record(FILE *fp, const unsigned char *buffer, const struct local_desc *desc_prev, const struct local_desc *desc_cur, const char *filename)
+static int take_record(FILE *fp, const unsigned char *buffer, const struct local_desc *desc_prev, const struct local_desc *desc_cur, const char *filename)
 {
     unsigned int sample_size;
     unsigned int data_write;
@@ -100,42 +88,59 @@ int take_record(FILE *fp, const unsigned char *buffer, const struct local_desc *
     }
 }
 
-void *pts_dump_thread(void *args)
+static void *pts_dump_thread(void *args)
 {
-    char *filename;
+    char filename[32];
     FILE *fp;
     struct local_desc desc_prev;
     struct local_desc desc_cur;
     int ret;
-    
-    if (NULL == args)
-        return NULL;
+    int filecnt;
+    sem_t sem;
+    struct timespec timeout;
 
-    filename = "dump.pts";
     fp = NULL;
     memset(&desc_prev, 0, sizeof(struct local_desc));
     memset(&desc_cur, 0, sizeof(struct local_desc));
     ret = 0;
-    
-    // FILE Setup
-    fp = fopen(filename, "wb");
-    if (NULL == fp) {
-        printf("Can't open %s\n", filename);
-        return NULL;
-    }
-
-    // DESCRIPTOR Init
-    pts_descriptor_get(NULL, &desc_prev);
-    desc_prev.start = desc_prev.start;
-    desc_prev.end   = desc_prev.end;
-    desc_prev.wp    = desc_prev.start; // TODO demux don't reset ?
-    desc_prev.rp    = desc_prev.start;
+    filecnt = 0;
 
     while (1) {
-            
-        usleep(SAMPLE_US);
 
-        pts_descriptor_get(NULL, &desc_cur);
+        clock_gettime(CLOCK_REALTIME, &timeout);
+        //timeout.tv_nsec += SAMPLE_US * 1000;
+        timeout.tv_sec++;
+        
+        if (0 == sem_timedwait(&sem_es, &timeout)) {
+
+            // FILE Setup
+            if (NULL != fp) {
+                printf("Record %s (%d MB) done.\n", filename, ftell(fp)>>20);
+                fclose(fp);
+                fp = NULL;
+            }
+
+            sprintf(filename, "%s/dump-%03d.pts", directory, filecnt);
+
+            fp = fopen(filename, "wb");
+            if (NULL == fp) {
+                printf("Can't open %s\n", filename);
+                break;
+            }
+            else {
+                printf("Record %s started\n", filename);
+                filecnt++;
+            }
+
+            // DESCRIPTOR setup
+            descriptor_get(NULL, &desc_prev);
+            desc_prev.start = desc_prev.start;
+            desc_prev.end   = desc_prev.end;
+            desc_prev.wp    = desc_prev.start; // TODO demux don't reset ?
+            desc_prev.rp    = desc_prev.start;
+        }
+
+        descriptor_get(NULL, &desc_cur);
 
         ret = take_record(fp, g_pts_buffer, &desc_prev, &desc_cur, filename);
         if (-1 == ret) {
@@ -146,54 +151,46 @@ void *pts_dump_thread(void *args)
     }
 
     if (NULL != fp) {
-        printf("Record %s (%d B) done.\n", filename, ftell(fp));
+        printf("Record %s (%d MB) done.\n", filename, ftell(fp)>>20);
         fclose(fp);
     }
-
+    
     return NULL;
 }
 
-int func_ptsdump(int channel, const char *homedir)
+int func_ptsdump(int channel, char *homedir)
 {
-    pthread_t pid;
-    unsigned int ddr_addr;
+    int ret;
+    struct local_desc desc;
     struct local_desc pts_desc;
+    pthread_t pid;
+    unsigned int es_desc_addr;
     
-    if (NULL == homedir) {
-        strncpy(directory, "/tmp", sizeof(directory));
-    }   
-    else {
-        strncpy(directory, homedir, sizeof(directory));
-    } 
-    
+    ret = 0;
+
+    if (NULL == homedir)
+        return -1;
+
     if ((channel != 0) && (channel != 1))
         return -1;
-    
-    // SX7B don't have pts buffer, as malone use PES
-    if (0 == channel)
-        ddr_addr = comm_get_addr(19 | 0 << 6);
-    else if (1 == channel)
-        ddr_addr = comm_get_addr(19 | 1 << 6); // use constant can block error spread
-    else
-        return -1;
-    
-    printf("pts descriptor @ 0x%08x\n", ddr_addr);
-    
-    g_pts_descriptor = (unsigned int)mem_map(ddr_addr & 0xFFFF0000, 0x10000) + (ddr_addr & 0x0000FFFF);
 
-    pts_descriptor_get(NULL, &pts_desc);
+    strncpy(directory, homedir, sizeof(directory));
+
+    es_desc_addr = comm_get_addr(19 | channel << 6);
+
+    g_pts_descriptor = (unsigned int)mem_map(es_desc_addr & 0xFFFF0000, 0x10000) + (es_desc_addr & 0x0000FFFF);
     
-    // get buffer
-    g_pts_buffer = mem_map((unsigned int)pts_desc.start, pts_desc.end - pts_desc.start);
+    descriptor_get(NULL, &desc);
+
+    printf("Desc: %x %x %x %x\n", desc.start, desc.end, desc.wp, desc.rp);
+    
+    g_pts_buffer = mem_map((unsigned int)desc.start, desc.end - desc.start);
+
+    sem_init(&sem_es, 0, 0);
+
+    sem_post(&sem_es);
 
     pthread_create(&pid, NULL, pts_dump_thread, NULL);
-
-    while (1)
-    {
-        pts_descriptor_get(NULL, &pts_desc);    
-        printf("PTS: %x %x %x %x\n", pts_desc.start, pts_desc.end, pts_desc.wp, pts_desc.rp);
-        usleep(100*1000);
-    }
 
     return 0;
 }
