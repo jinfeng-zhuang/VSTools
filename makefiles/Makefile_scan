@@ -1,0 +1,4 @@
+SOURCE += *.c
+
+all:
+	echo $(SOURCE)
