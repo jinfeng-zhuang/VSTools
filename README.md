@@ -1,23 +1,25 @@
 # VESDUMP
 
-## Design
+## 设计
 
-* The threads does the simple things, make the logic simple.
+* 这里的工具主要在 Linux 上运行
 
-## Usage
+## 目录结构
 
-By default, vstool dump some important information.
+* app       - 各种工具
+* include   -
+* library   -
+* script    -
 
-* print log
-    
-    avtool --log "device:2,default:1"
+## 编译运行
 
-* avsync
+* 比如编译 app/png ，进入该目录直接 make 即可
 
-    avtool --avsync --channel 0
+## 工具
 
-* step frame
-
-    avtool --step [start | stop | forward] --channel 0
-
-
+* malone_log
+* pman_disable
+* png
+* simpledec
+* memory
+* avlog
