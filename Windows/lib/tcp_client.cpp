@@ -13,14 +13,20 @@ static SOCKET _socket = INVALID_SOCKET;
 static char   _host_name[256];
 static int    _port = 0;
 
+int net_disconnect(void)
+{
+    closesocket(_socket);
+
+    WSACleanup();
+
+    return 0;
+}
+
 int net_connect(const char* host_name, int port, int msec)
 {
     struct sockaddr_in  host_addr;
     int                 opt_val = 1;
     int                 opt_len = sizeof(opt_val);
-    unsigned long       mode;
-    struct timeval      timeout;
-    fd_set              set;
     WSADATA ws;
 
     memset(&host_addr, 0, sizeof(host_addr));
@@ -67,34 +73,45 @@ FAILED:
     return -1;
 }
 
-int net_transfer(unsigned char* params, void* result)
+int net_transfer(unsigned char* request, void* response)
 {
-    int param_length = 0;
+    unsigned int request_len = 0;
+    unsigned int response_length = 0;
+
     unsigned char len[2];
     unsigned char* p = NULL;
-    unsigned int result_length = 0;
+
     unsigned int count = 0;
     int length = 0;
 
     if (_socket == INVALID_SOCKET)
         return -1;
 
-    p = (unsigned char*)result;
+    p = (unsigned char*)response;
 
-    param_length = (WORD)params[2] + ((WORD)params[3] << 8) + 4;
+    request_len = (unsigned short)request[2] + ((unsigned short)request[3] << 8) + 4;
 
     // send command
-    if (send(_socket, (const char*)params, param_length, 0) <= 0) {
+    if (send(_socket, (const char*)request, request_len, 0) <= 0) {
+        vs_log(LOG_MASK_NET, VS_LOG_WARNING, "send failed\n");
         goto FAILED;
+    }
+
+    if (NULL == p) {
+        goto NO_RESPONSE;
     }
 
     // receive data length
     if (recv(_socket, (char*)len, sizeof(len), 0) <= 0) {
+        vs_log(LOG_MASK_NET, VS_LOG_WARNING, "recv len failed\n");
         goto FAILED;
     }
 
-    result_length = len[0] + ((int)len[1] << 8);
-    count = result_length;
+    // TODO compare with request data length
+    response_length = len[0] + ((int)len[1] << 8);
+    count = response_length;
+
+    vs_log(LOG_MASK_NET, VS_LOG_DEBUG, "response len: %d\n", response_length);
 
     // receive data
     while (count > 0)
@@ -102,6 +119,7 @@ int net_transfer(unsigned char* params, void* result)
         length = recv(_socket, (char*)p, count, 0);
 
         if (length <= 0) {
+            vs_log(LOG_MASK_NET, VS_LOG_WARNING, "recv data failed\n");
             goto FAILED;
         }
 
@@ -109,13 +127,16 @@ int net_transfer(unsigned char* params, void* result)
         p += length;
     }
 
-    return result_length;
+    return response_length;
 
 FAILED:
     if (_socket != INVALID_SOCKET) {
         closesocket(_socket);
     }
     return -1;
+
+NO_RESPONSE:
+    return 0;
 }
 
 int net_is_connected(void)
