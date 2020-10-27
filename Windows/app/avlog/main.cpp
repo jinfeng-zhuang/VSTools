@@ -80,7 +80,7 @@ int main(int argc, char* argv[])
     SYSTEMTIME time;
     char output_filename[64];
 
-    vs_log_init(LOG_MASK_AV | LOG_MASK_DBG | LOG_MASK_NET, VS_LOG_VERBOSE);
+    vs_log_init(LOG_MASK_AV | LOG_MASK_DBG | LOG_MASK_NET, VS_LOG_INFO);
 
     if (argc != 3) {
         vs_log(LOG_MASK_AV, VS_LOG_WARNING, usage, __DATE__);
