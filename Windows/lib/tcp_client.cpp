@@ -56,9 +56,13 @@ int net_connect(const char* host_name, int port, int msec)
     //setsockopt(_socket, SOL_SOCKET, SO_SNDTIMEO, (char*)& msec, sizeof(msec));
     //setsockopt(_socket, SOL_SOCKET, SO_RCVTIMEO, (char*)& msec, sizeof(msec));
 
+    vs_log(LOG_MASK_NET, VS_LOG_VERBOSE, "%s %d\n", __FUNCTION__, __LINE__);
+
     if (-1 == connect(_socket, (struct sockaddr*) & host_addr, sizeof(host_addr))) {
         goto FAILED;
     }
+
+    vs_log(LOG_MASK_NET, VS_LOG_VERBOSE, "%s %d\n", __FUNCTION__, __LINE__);
 
     strcpy(_host_name, host_name);
     _port = port;

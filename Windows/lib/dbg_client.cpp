@@ -29,6 +29,8 @@ int dbg_init(const char* ip, const short port)
     int ret;
     struct endian request;
 
+    vs_log(LOG_MASK_DBG, VS_LOG_INFO, "Connecting...\n");
+
     ret = net_connect(ip, port, 0);
 
     if (ret != 0) {
@@ -36,7 +38,7 @@ int dbg_init(const char* ip, const short port)
         return -1;
     }
 
-    vs_log(LOG_MASK_DBG, VS_LOG_INFO, "%s connected\n", __FUNCTION__);
+    vs_log(LOG_MASK_DBG, VS_LOG_INFO, "Connected\n");
 
     request.head = 18 | ((sizeof(struct endian) - 4) << 16); // TODO
     request.little = 1;

@@ -1,5 +1,8 @@
 .vs/
 Debug/
+x64/
+
+*.ncb
+*.suo
 *.filters
 *.user
-x64/

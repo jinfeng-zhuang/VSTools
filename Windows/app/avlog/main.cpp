@@ -10,6 +10,7 @@
 #include <vs/log.h>
 #include <vs/dbg.h>
 #include <vs/misc.h>
+#include <vs/sx.h>
 
 #define GET_VIDEO_DEBUG_INFO_BASE	 0xBADBAD00
 
@@ -79,7 +80,7 @@ int main(int argc, char* argv[])
     SYSTEMTIME time;
     char output_filename[64];
 
-    vs_log_init(LOG_MASK_AV, VS_LOG_INFO);
+    vs_log_init(LOG_MASK_AV | LOG_MASK_DBG | LOG_MASK_NET, VS_LOG_VERBOSE);
 
     if (argc != 3) {
         vs_log(LOG_MASK_AV, VS_LOG_WARNING, usage, __DATE__);
@@ -104,7 +105,7 @@ int main(int argc, char* argv[])
         goto END;
     }
 
-    vs_log(LOG_MASK_AV, VS_LOG_INFO, "Chip ID: 0x%08x\n", chip_id);
+    vs_log(LOG_MASK_AV, VS_LOG_INFO, "Chip: %s\n", chip_name(chip_id));
 
     // Get Log Address
     ret = dbg_avmips_read32(GET_VIDEO_DEBUG_INFO_PRINTMSGADDR, &log_addr, 1);
