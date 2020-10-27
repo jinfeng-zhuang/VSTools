@@ -13,7 +13,7 @@ extern unsigned int log_module;
 
 extern int log_level;
 
-extern void vs_log_init(unsigned int mudule);
+extern void vs_log_init(unsigned int mudule, int level);
 extern int vs_log(unsigned int module, int lvl, const char *fmt, ...);
 
 //=============================================================================
@@ -24,6 +24,7 @@ enum {
     LOG_MASK_MEMORY = 1 << 3,
     LOG_MASK_REG = 1 << 4,
     LOG_MASK_MISC = 1 << 5,
+    LOG_MASK_AV = 1 << 6
 };
 //=============================================================================
 

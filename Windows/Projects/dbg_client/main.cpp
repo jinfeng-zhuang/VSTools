@@ -97,7 +97,7 @@ int main(int argc, char* argv[])
     unsigned int stride;
     char filename[64];
 
-    vs_log_init(LOG_MASK_DBG | LOG_MASK_MISC | LOG_MASK_NET);
+    vs_log_init(LOG_MASK_DBG | LOG_MASK_MISC | LOG_MASK_NET, VS_LOG_INFO);
 
     vs_log(LOG_MASK_DBG, VS_LOG_INFO, "%s\n", argv[0]);
     

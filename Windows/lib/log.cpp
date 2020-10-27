@@ -12,9 +12,10 @@ int log_level = VS_LOG_INFO;
 
 char log_buffer[1 << 20];
 
-void vs_log_init(unsigned int mudule)
+void vs_log_init(unsigned int mudule, int level)
 {
     log_module = mudule;
+    log_level = level;
 }
 
 int vs_log(unsigned int module, int lvl, const char *fmt, ...)
@@ -32,7 +33,8 @@ int vs_log(unsigned int module, int lvl, const char *fmt, ...)
     
     va_end(args);
 
-    printf(log_buffer);
+    printf("%s", log_buffer);
+    fflush(stdout);
 
     if (lvl == VS_LOG_ERROR)
         exit(0xFF);

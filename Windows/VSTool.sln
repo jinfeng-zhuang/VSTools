@@ -27,6 +27,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "avmips_ctrl", "Projects\avm
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "log", "Projects\log\log.vcxproj", "{70C3805D-FA36-4B13-AAC2-8873FF4D9D7C}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "video_capture", "Projects\video_capture\video_capture.vcxproj", "{471713D6-E073-4A32-B61D-4D26473B78B1}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -131,6 +133,14 @@ Global
 		{70C3805D-FA36-4B13-AAC2-8873FF4D9D7C}.Release|x64.Build.0 = Debug|x64
 		{70C3805D-FA36-4B13-AAC2-8873FF4D9D7C}.Release|x86.ActiveCfg = Debug|Win32
 		{70C3805D-FA36-4B13-AAC2-8873FF4D9D7C}.Release|x86.Build.0 = Debug|Win32
+		{471713D6-E073-4A32-B61D-4D26473B78B1}.Debug|x64.ActiveCfg = Debug|x64
+		{471713D6-E073-4A32-B61D-4D26473B78B1}.Debug|x64.Build.0 = Debug|x64
+		{471713D6-E073-4A32-B61D-4D26473B78B1}.Debug|x86.ActiveCfg = Debug|Win32
+		{471713D6-E073-4A32-B61D-4D26473B78B1}.Debug|x86.Build.0 = Debug|Win32
+		{471713D6-E073-4A32-B61D-4D26473B78B1}.Release|x64.ActiveCfg = Release|x64
+		{471713D6-E073-4A32-B61D-4D26473B78B1}.Release|x64.Build.0 = Release|x64
+		{471713D6-E073-4A32-B61D-4D26473B78B1}.Release|x86.ActiveCfg = Release|Win32
+		{471713D6-E073-4A32-B61D-4D26473B78B1}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
