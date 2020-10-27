@@ -1,0 +1,38 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 10.00
+# Visual Studio 2008
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "avlog", "avlog\avlog.vcproj", "{D3DFD3FE-E125-42AF-AB44-27E78C3D0860}"
+	ProjectSection(ProjectDependencies) = postProject
+		{3E35BF11-31D2-4A76-9801-3B2B8E008B27} = {3E35BF11-31D2-4A76-9801-3B2B8E008B27}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "avlib", "avlib\avlib.vcproj", "{3E35BF11-31D2-4A76-9801-3B2B8E008B27}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "avformat", "avformat\avformat.vcproj", "{101F7D2F-FC5B-45FB-BC9E-55B764E1C0D3}"
+	ProjectSection(ProjectDependencies) = postProject
+		{3E35BF11-31D2-4A76-9801-3B2B8E008B27} = {3E35BF11-31D2-4A76-9801-3B2B8E008B27}
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Release|Win32 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{D3DFD3FE-E125-42AF-AB44-27E78C3D0860}.Debug|Win32.ActiveCfg = Debug|Win32
+		{D3DFD3FE-E125-42AF-AB44-27E78C3D0860}.Debug|Win32.Build.0 = Debug|Win32
+		{D3DFD3FE-E125-42AF-AB44-27E78C3D0860}.Release|Win32.ActiveCfg = Release|Win32
+		{D3DFD3FE-E125-42AF-AB44-27E78C3D0860}.Release|Win32.Build.0 = Release|Win32
+		{3E35BF11-31D2-4A76-9801-3B2B8E008B27}.Debug|Win32.ActiveCfg = Debug|Win32
+		{3E35BF11-31D2-4A76-9801-3B2B8E008B27}.Debug|Win32.Build.0 = Debug|Win32
+		{3E35BF11-31D2-4A76-9801-3B2B8E008B27}.Release|Win32.ActiveCfg = Release|Win32
+		{3E35BF11-31D2-4A76-9801-3B2B8E008B27}.Release|Win32.Build.0 = Release|Win32
+		{101F7D2F-FC5B-45FB-BC9E-55B764E1C0D3}.Debug|Win32.ActiveCfg = Debug|Win32
+		{101F7D2F-FC5B-45FB-BC9E-55B764E1C0D3}.Debug|Win32.Build.0 = Debug|Win32
+		{101F7D2F-FC5B-45FB-BC9E-55B764E1C0D3}.Release|Win32.ActiveCfg = Release|Win32
+		{101F7D2F-FC5B-45FB-BC9E-55B764E1C0D3}.Release|Win32.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

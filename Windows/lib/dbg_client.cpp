@@ -21,7 +21,7 @@ struct host_write_request {
 
 struct endian {
     unsigned int head;
-    unsigned int endian;
+    unsigned int little;
 };
 
 int dbg_init(const char* ip, const short port)
@@ -32,23 +32,23 @@ int dbg_init(const char* ip, const short port)
     ret = net_connect(ip, port, 0);
 
     if (ret != 0) {
-        vs_log(LOG_MASK_DBG, VS_LOG_ERROR, "%s failed\n", __func__);
+        vs_log(LOG_MASK_DBG, VS_LOG_ERROR, "%s failed\n", __FUNCTION__);
         return -1;
     }
 
-    vs_log(LOG_MASK_DBG, VS_LOG_INFO, "%s connected\n", __func__);
+    vs_log(LOG_MASK_DBG, VS_LOG_INFO, "%s connected\n", __FUNCTION__);
 
     request.head = 18 | ((sizeof(struct endian) - 4) << 16); // TODO
-    request.endian = 1;
+    request.little = 1;
 
     ret = net_transfer((unsigned char*)& request, NULL);
 
     if (-1 == ret) {
-        vs_log(LOG_MASK_DBG, VS_LOG_WARNING, "%s set endian failed\n", __func__);
+        vs_log(LOG_MASK_DBG, VS_LOG_WARNING, "%s set endian failed\n", __FUNCTION__);
         return -1;
     }
 
-    vs_log(LOG_MASK_DBG, VS_LOG_INFO, "%s set endian done\n", __func__);
+    vs_log(LOG_MASK_DBG, VS_LOG_INFO, "%s set endian done\n", __FUNCTION__);
 
     return 0;
 }
@@ -66,7 +66,7 @@ int dbg_host_read32(unsigned int addr, unsigned int* buffer, int count)
     int ret;
 
     if ((NULL == buffer) || (0 != (addr % 4)) || (count <= 0)) {
-        vs_log(LOG_MASK_DBG, VS_LOG_WARNING, "%s param not correct\n", __func__);
+        vs_log(LOG_MASK_DBG, VS_LOG_WARNING, "%s param not correct\n", __FUNCTION__);
         return -1;
     }
 
@@ -78,11 +78,11 @@ int dbg_host_read32(unsigned int addr, unsigned int* buffer, int count)
     ret = net_transfer((unsigned char *)& request, buffer);
 
     if (-1 == ret) {
-        vs_log(LOG_MASK_DBG, VS_LOG_WARNING, "%s failed\n", __func__);
+        vs_log(LOG_MASK_DBG, VS_LOG_WARNING, "%s failed\n", __FUNCTION__);
         return -1;
     }
 
-    vs_log(LOG_MASK_DBG, VS_LOG_INFO, "%s done\n", __func__);
+    vs_log(LOG_MASK_DBG, VS_LOG_INFO, "%s done\n", __FUNCTION__);
 
     return 0;
 }
@@ -93,7 +93,7 @@ int dbg_avmips_read32(unsigned int addr, unsigned int* buffer, int count)
     int ret;
 
     if ((NULL == buffer) || (((addr & 0xFFFFFF00) != 0xBADBAD00) && (0 != (addr % 4))) || (count <= 0)) {
-        vs_log(LOG_MASK_DBG, VS_LOG_WARNING, "%s param not correct\n", __func__);
+        vs_log(LOG_MASK_DBG, VS_LOG_WARNING, "%s param not correct\n", __FUNCTION__);
         return -1;
     }
 
@@ -105,11 +105,11 @@ int dbg_avmips_read32(unsigned int addr, unsigned int* buffer, int count)
     ret = net_transfer((unsigned char*)& request, buffer);
 
     if (-1 == ret) {
-        vs_log(LOG_MASK_DBG, VS_LOG_WARNING, "%s failed\n", __func__);
+        vs_log(LOG_MASK_DBG, VS_LOG_WARNING, "%s failed\n", __FUNCTION__);
         return -1;
     }
 
-    vs_log(LOG_MASK_DBG, VS_LOG_INFO, "%s done\n", __func__);
+    vs_log(LOG_MASK_DBG, VS_LOG_INFO, "%s done\n", __FUNCTION__);
 
     return 0;
 }
@@ -121,7 +121,7 @@ static int dbg_host_read8_4K(unsigned int addr, unsigned char* buffer, int count
     int ret;
 
     if ((NULL == buffer) || (count <= 0)) {
-        vs_log(LOG_MASK_DBG, VS_LOG_WARNING, "%s param not correct\n", __func__);
+        vs_log(LOG_MASK_DBG, VS_LOG_WARNING, "%s param not correct\n", __FUNCTION__);
         return -1;
     }
 
@@ -134,11 +134,11 @@ static int dbg_host_read8_4K(unsigned int addr, unsigned char* buffer, int count
     ret = net_transfer((unsigned char*)& request, buffer);
 
     if (-1 == ret) {
-        vs_log(LOG_MASK_DBG, VS_LOG_WARNING, "%s failed\n", __func__);
+        vs_log(LOG_MASK_DBG, VS_LOG_WARNING, "%s failed\n", __FUNCTION__);
         return -1;
     }
 
-    vs_log(LOG_MASK_DBG, VS_LOG_DEBUG, "%s done\n", __func__);
+    vs_log(LOG_MASK_DBG, VS_LOG_DEBUG, "%s done\n", __FUNCTION__);
 
     return 0;
 }
@@ -173,12 +173,12 @@ int dbg_host_read8(unsigned int addr, unsigned char* buffer, int count)
         remain = remain - bytes2read;
     }
 
-    vs_log(LOG_MASK_DBG, VS_LOG_DEBUG, "%s done\n", __func__);
+    vs_log(LOG_MASK_DBG, VS_LOG_DEBUG, "%s done\n", __FUNCTION__);
 
     return 0;
 
 END:
-    vs_log(LOG_MASK_DBG, VS_LOG_WARNING, "%s failed\n", __func__);
+    vs_log(LOG_MASK_DBG, VS_LOG_WARNING, "%s failed\n", __FUNCTION__);
 
     return -1;
 }
@@ -190,7 +190,7 @@ static int dbg_host_write8_4K(unsigned int addr, unsigned char* buffer, int coun
     int ret;
 
     if ((NULL == buffer) || (count <= 0)) {
-        vs_log(LOG_MASK_DBG, VS_LOG_WARNING, "%s param not correct\n", __func__);
+        vs_log(LOG_MASK_DBG, VS_LOG_WARNING, "%s param not correct\n", __FUNCTION__);
         return -1;
     }
 
@@ -204,11 +204,11 @@ static int dbg_host_write8_4K(unsigned int addr, unsigned char* buffer, int coun
     ret = net_transfer((unsigned char*)& request, NULL);
 
     if (-1 == ret) {
-        vs_log(LOG_MASK_DBG, VS_LOG_WARNING, "%s failed\n", __func__);
+        vs_log(LOG_MASK_DBG, VS_LOG_WARNING, "%s failed\n", __FUNCTION__);
         return -1;
     }
 
-    vs_log(LOG_MASK_DBG, VS_LOG_DEBUG, "%s done\n", __func__);
+    vs_log(LOG_MASK_DBG, VS_LOG_DEBUG, "%s done\n", __FUNCTION__);
 
     return 0;
 }
@@ -243,12 +243,12 @@ int dbg_host_write8(unsigned int addr, unsigned char* buffer, int count)
         remain = remain - bytes2write;
     }
 
-    vs_log(LOG_MASK_DBG, VS_LOG_DEBUG, "%s done\n", __func__);
+    vs_log(LOG_MASK_DBG, VS_LOG_DEBUG, "%s done\n", __FUNCTION__);
 
     return 0;
 
 END:
-    vs_log(LOG_MASK_DBG, VS_LOG_WARNING, "%s failed\n", __func__);
+    vs_log(LOG_MASK_DBG, VS_LOG_WARNING, "%s failed\n", __FUNCTION__);
 
     return -1;
 }
