@@ -53,7 +53,7 @@ int hexdump(unsigned char* buffer, unsigned int length)
         sprintf(&hexdump_buffer[strlen(hexdump_buffer)], "\n");
     }
 
-    vs_log(LOG_MASK_MISC, VS_LOG_VERBOSE, "%s\n", hexdump_buffer);
+    vs_log(LOG_MASK_MISC, VS_LOG_FUNC, "%s\n", hexdump_buffer);
     
     return 0;
 }

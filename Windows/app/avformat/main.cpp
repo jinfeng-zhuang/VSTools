@@ -128,7 +128,7 @@ int main(int argc, char* argv[])
         // Get Frame Info Register
         ret = dbg_host_read32(MPEGDISP_CH1_C0_FRMINFO | 0xF0000000, &cur_frame_info_addr, 1);
         if (0 == ret) {
-            vs_log(LOG_MASK_AV, VS_LOG_DEBUG, "Current Frame Info Address: 0x%08x\n", cur_frame_info_addr);
+            vs_log(LOG_MASK_AV, VS_LOG_MODULE, "Current Frame Info Address: 0x%08x\n", cur_frame_info_addr);
         }
 
         if (0 == cur_frame_info_addr) {

@@ -56,13 +56,13 @@ int net_connect(const char* host_name, int port, int msec)
     //setsockopt(_socket, SOL_SOCKET, SO_SNDTIMEO, (char*)& msec, sizeof(msec));
     //setsockopt(_socket, SOL_SOCKET, SO_RCVTIMEO, (char*)& msec, sizeof(msec));
 
-    vs_log(LOG_MASK_NET, VS_LOG_VERBOSE, "%s %d\n", __FUNCTION__, __LINE__);
+    vs_log(LOG_MASK_NET, VS_LOG_FUNC, "%s %d\n", __FUNCTION__, __LINE__);
 
     if (-1 == connect(_socket, (struct sockaddr*) & host_addr, sizeof(host_addr))) {
         goto FAILED;
     }
 
-    vs_log(LOG_MASK_NET, VS_LOG_VERBOSE, "%s %d\n", __FUNCTION__, __LINE__);
+    vs_log(LOG_MASK_NET, VS_LOG_FUNC, "%s %d\n", __FUNCTION__, __LINE__);
 
     strcpy(_host_name, host_name);
     _port = port;
@@ -115,7 +115,7 @@ int net_transfer(unsigned char* request, void* response)
     response_length = len[0] + ((int)len[1] << 8);
     count = response_length;
 
-    vs_log(LOG_MASK_NET, VS_LOG_DEBUG, "response len: %d\n", response_length);
+    vs_log(LOG_MASK_NET, VS_LOG_MODULE, "response len: %d\n", response_length);
 
     // receive data
     while (count > 0)

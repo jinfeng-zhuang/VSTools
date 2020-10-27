@@ -5,8 +5,8 @@ enum {
     VS_LOG_ERROR,       // system can't run
     VS_LOG_WARNING,     //
     VS_LOG_INFO,        // normal info, user need to know, below it is error info, uppon is debug info
-    VS_LOG_DEBUG,       // developer, module, level
-    VS_LOG_VERBOSE,     // developer, function, level, __FUNCTION__, __LINE__
+    VS_LOG_MODULE,       // developer, module, level
+    VS_LOG_FUNC,     // developer, function, level, __FUNCTION__, __LINE__
 };
 
 extern unsigned int log_module;

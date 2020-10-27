@@ -50,7 +50,7 @@ int dbg_init(const char* ip, const short port)
         return -1;
     }
 
-    vs_log(LOG_MASK_DBG, VS_LOG_INFO, "%s set endian done\n", __FUNCTION__);
+    vs_log(LOG_MASK_DBG, VS_LOG_MODULE, "%s set endian done\n", __FUNCTION__);
 
     return 0;
 }
@@ -84,7 +84,7 @@ int dbg_host_read32(unsigned int addr, unsigned int* buffer, int count)
         return -1;
     }
 
-    vs_log(LOG_MASK_DBG, VS_LOG_INFO, "%s done\n", __FUNCTION__);
+    vs_log(LOG_MASK_DBG, VS_LOG_MODULE, "%s done\n", __FUNCTION__);
 
     return 0;
 }
@@ -111,7 +111,7 @@ int dbg_avmips_read32(unsigned int addr, unsigned int* buffer, int count)
         return -1;
     }
 
-    vs_log(LOG_MASK_DBG, VS_LOG_INFO, "%s done\n", __FUNCTION__);
+    vs_log(LOG_MASK_DBG, VS_LOG_MODULE, "%s done\n", __FUNCTION__);
 
     return 0;
 }
@@ -140,7 +140,7 @@ static int dbg_host_read8_4K(unsigned int addr, unsigned char* buffer, int count
         return -1;
     }
 
-    vs_log(LOG_MASK_DBG, VS_LOG_DEBUG, "%s done\n", __FUNCTION__);
+    vs_log(LOG_MASK_DBG, VS_LOG_MODULE, "%s done\n", __FUNCTION__);
 
     return 0;
 }
@@ -157,7 +157,7 @@ int dbg_host_read8(unsigned int addr, unsigned char* buffer, int count)
     dst_inc = buffer;
     remain = count;
 
-    vs_log(LOG_MASK_DBG, VS_LOG_INFO, "dbg_host_read8 %d...\n", count);
+    vs_log(LOG_MASK_DBG, VS_LOG_MODULE, "dbg_host_read8 %d...\n", count);
 
     while (remain > 0) {
 
@@ -175,7 +175,7 @@ int dbg_host_read8(unsigned int addr, unsigned char* buffer, int count)
         remain = remain - bytes2read;
     }
 
-    vs_log(LOG_MASK_DBG, VS_LOG_DEBUG, "%s done\n", __FUNCTION__);
+    vs_log(LOG_MASK_DBG, VS_LOG_MODULE, "%s done\n", __FUNCTION__);
 
     return 0;
 
@@ -210,7 +210,7 @@ static int dbg_host_write8_4K(unsigned int addr, unsigned char* buffer, int coun
         return -1;
     }
 
-    vs_log(LOG_MASK_DBG, VS_LOG_DEBUG, "%s done\n", __FUNCTION__);
+    vs_log(LOG_MASK_DBG, VS_LOG_MODULE, "%s done\n", __FUNCTION__);
 
     return 0;
 }
@@ -227,7 +227,7 @@ int dbg_host_write8(unsigned int addr, unsigned char* buffer, int count)
     dst_inc = buffer;
     remain = count;
 
-    vs_log(LOG_MASK_DBG, VS_LOG_INFO, "dbg_host_write8 %d...\n", count);
+    vs_log(LOG_MASK_DBG, VS_LOG_MODULE, "dbg_host_write8 %d...\n", count);
 
     while (remain > 0) {
 
@@ -245,7 +245,7 @@ int dbg_host_write8(unsigned int addr, unsigned char* buffer, int count)
         remain = remain - bytes2write;
     }
 
-    vs_log(LOG_MASK_DBG, VS_LOG_DEBUG, "%s done\n", __FUNCTION__);
+    vs_log(LOG_MASK_DBG, VS_LOG_MODULE, "%s done\n", __FUNCTION__);
 
     return 0;
 

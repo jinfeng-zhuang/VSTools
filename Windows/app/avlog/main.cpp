@@ -113,7 +113,7 @@ int main(int argc, char* argv[])
         goto END;
     }
 
-    vs_log(LOG_MASK_AV, VS_LOG_DEBUG, "Current Log Address: 0x%08x\n", log_addr);
+    vs_log(LOG_MASK_AV, VS_LOG_MODULE, "Current Log Address: 0x%08x\n", log_addr);
 
     // Set Log Settings
     ret = dbg_avmips_read32(GET_VIDEO_DEBUG_INFO_PRINTSET, &log_setting_addr, 1);
@@ -121,7 +121,7 @@ int main(int argc, char* argv[])
         goto END;
     }
 
-    vs_log(LOG_MASK_AV, VS_LOG_DEBUG, "Current Setting Address: 0x%08x\n", log_setting_addr);
+    vs_log(LOG_MASK_AV, VS_LOG_MODULE, "Current Setting Address: 0x%08x\n", log_setting_addr);
 
     ret = dbg_host_write8(log_setting_addr, (unsigned char *)log_setting, strlen(log_setting));
     if (0 != ret) {
@@ -133,7 +133,7 @@ int main(int argc, char* argv[])
         goto END;
     }
 
-    vs_log(LOG_MASK_AV, VS_LOG_DEBUG, "Parse Done\n");
+    vs_log(LOG_MASK_AV, VS_LOG_MODULE, "Parse Done\n");
 
     ret = dbg_host_read8(log_addr, (unsigned char *)&local_desc, OFFSET(struct log_desc, msg));
     if (0 != ret) {
@@ -173,7 +173,7 @@ int main(int argc, char* argv[])
             goto END;
         }
 
-        vs_log(LOG_MASK_AV, VS_LOG_DEBUG, "wr = %d\n", wr);
+        vs_log(LOG_MASK_AV, VS_LOG_MODULE, "wr = %d\n", wr);
 
         for (i = rd; i < wr; i++) {
             msg_addr = log_addr + OFFSET(struct log_desc, msg[i & (local_desc.total - 1)]);
