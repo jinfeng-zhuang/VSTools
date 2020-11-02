@@ -1,13 +1,27 @@
 #define _WINSOCK_DEPRECATED_NO_WARNINGS
 #define _CRT_SECURE_NO_WARNINGS
 
+#ifdef _WIN32
 #pragma comment(lib, "ws2_32.lib")
-
 #include <winsock2.h>
+#else
+#include <sys/socket.h>
+#include <arpa/inet.h>
+#include <unistd.h>
+#include <netinet/tcp.h>
+#include <netinet/in.h>
+#endif
+
 #include <string.h>
 #include <stdio.h>
 
 #include <vs/log.h>
+
+#ifndef _WIN32
+#define SOCKET int
+#define INVALID_SOCKET (-1)
+#define closesocket close
+#endif
 
 static SOCKET _socket = INVALID_SOCKET;
 static char   _host_name[256];
@@ -16,9 +30,10 @@ static int    _port = 0;
 int net_disconnect(void)
 {
     closesocket(_socket);
-
+    
+#ifdef _WIN32
     WSACleanup();
-
+#endif
     return 0;
 }
 
@@ -27,20 +42,31 @@ int net_connect(const char* host_name, int port, int msec)
     struct sockaddr_in  host_addr;
     int                 opt_val = 1;
     int                 opt_len = sizeof(opt_val);
+    
+#ifdef _WIN32
     WSADATA ws;
+#endif
 
     memset(&host_addr, 0, sizeof(host_addr));
 
     host_addr.sin_family = AF_INET;
+    
+#ifdef _WIN32
     host_addr.sin_addr.S_un.S_addr = inet_addr(host_name);
+#else
+    inet_pton(AF_INET, host_name, &host_addr.sin_addr);
+#endif
+
     host_addr.sin_port = htons((short)port);
 
     if (_socket != INVALID_SOCKET)
         closesocket(_socket);
 
+#ifdef _WIN32
     if (0 != WSAStartup(0x0101, &ws)) {
         goto FAILED;
     }
+#endif
 
     _socket = socket(AF_INET, SOCK_STREAM, 0);
 

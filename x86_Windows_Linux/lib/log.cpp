@@ -29,8 +29,12 @@ int vs_log(unsigned int module, int lvl, const char *fmt, ...)
     va_list args;
     va_start(args, fmt);
     
+#if _WIN32
     _vsnprintf(log_buffer, sizeof(log_buffer), fmt, args);
-    
+#else
+    vsnprintf(log_buffer, sizeof(log_buffer), fmt, args);
+#endif
+
     va_end(args);
 
     printf("%s", log_buffer);

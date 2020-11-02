@@ -1,9 +1,15 @@
 #ifndef MISC_H
 #define MISC_H
 
+#include <stddef.h>
+
 ///////////////////////////////////////////////////////////////////////////////
 
-#define OFFSET(T, f) ((int)(&(((T*)0)->f)))
+//#ifdef _WIN32
+#define OFFSET(T, f) (((unsigned int)(&(((T*)0)->f))))
+//#else
+//#define OFFSET(T,f) offsetof(T, f)
+//#endif
 
 #define ARRAY_SIZE(x) (sizeof(x) / sizeof((x)[0]))
 

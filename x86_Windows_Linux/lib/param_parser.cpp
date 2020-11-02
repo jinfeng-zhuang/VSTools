@@ -9,6 +9,10 @@
 
 #define SHORT_PARAM_STRING_SIZE 128
 
+#ifdef _WIN32
+#define snprintf _snprintf
+#endif
+
 static char short_param_string[SHORT_PARAM_STRING_SIZE];
 
 static int find_key(struct param *arr, int count, const char key)
@@ -30,9 +34,9 @@ int param_parse(int argc, char *argv[], struct param *arr, int count)
     int opt;
 
     for (i = 0; i < count; i++) {
-        _snprintf(short_param_string, SHORT_PARAM_STRING_SIZE - strlen(short_param_string), "%c", arr[i].key);
+        snprintf(short_param_string, SHORT_PARAM_STRING_SIZE - strlen(short_param_string), "%c", arr[i].key);
         if (arr[i].size > 0) {
-            _snprintf(short_param_string, SHORT_PARAM_STRING_SIZE - strlen(short_param_string), "%c", ':');
+            snprintf(short_param_string, SHORT_PARAM_STRING_SIZE - strlen(short_param_string), "%c", ':');
         }
     }
 

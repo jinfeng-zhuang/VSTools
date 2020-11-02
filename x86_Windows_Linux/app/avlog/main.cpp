@@ -4,7 +4,15 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+
+#ifdef _WIN32
 #include <Windows.h>
+#define snprintf _snprintf
+#else
+#include <unistd.h>
+#include <time.h>
+#define Sleep(ms) usleep(ms*1000)
+#endif
 
 #include <vs/net.h>
 #include <vs/log.h>
@@ -40,8 +48,14 @@ int main(int argc, char* argv[])
     char *log_setting;
     char *ip;
     FILE* fp = NULL;
-    SYSTEMTIME time;
     char output_filename[64];
+    
+#ifdef _WIN32
+    SYSTEMTIME time;
+#else
+    time_t nsec;
+    struct tm *tm;
+#endif
 
     vs_log_init(LOG_MASK_AV | LOG_MASK_DBG | LOG_MASK_MISC, VS_LOG_INFO);
 
@@ -55,7 +69,31 @@ int main(int argc, char* argv[])
 
     // TODO param check
 
+#ifdef _WIN32
     GetLocalTime(&time);
+    
+    snprintf(output_filename, sizeof(output_filename), "%d-%02d-%02d_%02d-%02d-%02d.log",
+        time.wYear,
+        time.wMonth,
+        time.wDay,
+        time.wHour,
+        time.wMinute,
+        time.wSecond
+    );
+#else
+    time(&nsec);
+
+    tm = localtime(&nsec);
+
+    snprintf(output_filename, sizeof(output_filename), "%d-%02d-%02d_%02d-%02d-%02d.log",
+        tm->tm_year,
+        tm->tm_mon,
+        tm->tm_mday,
+        tm->tm_hour,
+        tm->tm_min,
+        tm->tm_sec
+    );
+#endif
 
     ret = dbg_init(ip, (unsigned short)65528);
     if (0 != ret) {
@@ -116,6 +154,8 @@ int main(int argc, char* argv[])
     }
 
     vs_log(LOG_MASK_AV, VS_LOG_MODULE, "Parse Done\n");
+    
+    
 
     ret = dbg_host_read8(log_addr, (unsigned char *)&local_desc, OFFSET(struct log_desc, msg));
     if (0 != ret) {
@@ -132,15 +172,6 @@ int main(int argc, char* argv[])
         );
 
     rd = local_desc.wr;
-
-    _snprintf(output_filename, sizeof(output_filename), "%d-%02d-%02d_%02d-%02d-%02d.log",
-        time.wYear,
-        time.wMonth,
-        time.wDay,
-        time.wHour,
-        time.wMinute,
-        time.wSecond
-    );
 
     fp = fopen(output_filename, "w");
     if (NULL == fp) {

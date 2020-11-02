@@ -6,3 +6,5 @@ x64/
 *.suo
 *.filters
 *.user
+*.log
+*.out
