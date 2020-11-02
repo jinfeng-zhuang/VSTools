@@ -159,6 +159,8 @@ int dbg_host_read8(unsigned int addr, unsigned char* buffer, int count)
 
     vs_log(LOG_MASK_DBG, VS_LOG_MODULE, "dbg_host_read8 %d...\n", count);
 
+    memset(buffer, 0, count);
+
     while (remain > 0) {
 
         bytes2read = (remain > 0x1000) ? 0x1000 : remain;

@@ -7,12 +7,13 @@
 
 #include <vs/log.h>
 
-int hexdump(unsigned char* buffer, unsigned int length)
+int hexdump(void *start, unsigned int length)
 {
     uint32_t i, j;
     uint32_t line_num;
     uint32_t last_bytes;
     char *hexdump_buffer;
+    unsigned char *buffer = (unsigned char *)start;
 
     line_num = length / 16;
     last_bytes = length % 16;
@@ -53,7 +54,7 @@ int hexdump(unsigned char* buffer, unsigned int length)
         sprintf(&hexdump_buffer[strlen(hexdump_buffer)], "\n");
     }
 
-    vs_log(LOG_MASK_MISC, VS_LOG_FUNC, "%s\n", hexdump_buffer);
+    vs_log(LOG_MASK_MISC, VS_LOG_INFO, "%s\n", hexdump_buffer);
     
     return 0;
 }

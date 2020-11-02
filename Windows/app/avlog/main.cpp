@@ -11,46 +11,7 @@
 #include <vs/dbg.h>
 #include <vs/misc.h>
 #include <vs/sx.h>
-
-#define GET_VIDEO_DEBUG_INFO_BASE	 0xBADBAD00
-
-#define GET_VIDEO_DEBUG_INFO_AVSYNC	(GET_VIDEO_DEBUG_INFO_BASE + 1)
-#define GET_VIDEO_DEBUG_INFO_FORMAT	(GET_VIDEO_DEBUG_INFO_BASE + 2)
-#define GET_VIDEO_DEBUG_INFO_FRAMEQ	(GET_VIDEO_DEBUG_INFO_BASE + 3)
-#define GET_VIDEO_DEBUG_INFO_PRINTSET	(GET_VIDEO_DEBUG_INFO_BASE + 5)
-#define GET_VIDEO_DEBUG_INFO_PRINTPARSE	(GET_VIDEO_DEBUG_INFO_BASE + 6)
-
-#define GET_VIDEO_DEBUG_INFO_PRINTMSGADDR	(GET_VIDEO_DEBUG_INFO_BASE + 8)
-#define GET_VIDEO_DEBUG_INFO_FWPRINTADDR	(GET_VIDEO_DEBUG_INFO_BASE + 9)
-#define GET_VIDEO_DEBUG_INFO_HEVCDBGADDR	(GET_VIDEO_DEBUG_INFO_BASE + 10)
-
-#define GET_VIDEO_DEBUG_INFO_VESDESCADDR	(GET_VIDEO_DEBUG_INFO_BASE + 11)
-
-#define STEPFRM_MODE_START (GET_VIDEO_DEBUG_INFO_BASE + 12)
-#define STEPFRM_MODE_STEP (GET_VIDEO_DEBUG_INFO_BASE + 13)
-#define STEPFRM_MODE_STOP (GET_VIDEO_DEBUG_INFO_BASE + 14)
-
-#define AVSYNC_MODE_RECOVER (GET_VIDEO_DEBUG_INFO_BASE + 15)
-#define AVSYNC_MODE_DISABLE (GET_VIDEO_DEBUG_INFO_BASE + 16)
-
-#define SET_STATUS_PAUSE (GET_VIDEO_DEBUG_INFO_BASE + 17)
-#define SET_STATUS_RESUME (GET_VIDEO_DEBUG_INFO_BASE + 18)
-
-#define GET_VIDEO_DEBUG_INFO_PTSDESCADDR (GET_VIDEO_DEBUG_INFO_BASE + 19)
-
-#define SET_TIMER_SPEED (GET_VIDEO_DEBUG_INFO_BASE + 21)
-
-#define GET_AVMIPS_VERSION (GET_VIDEO_DEBUG_INFO_BASE + 22)
-
-struct log_desc {
-    int enable;
-    int level;
-    int total;
-    int rd;
-    int wr;
-    char msg[512][256];
-    int b3rdInit;
-};
+#include <vs/avmips.h>
 
 unsigned char msg[256];
 
@@ -67,6 +28,8 @@ int main(int argc, char* argv[])
 {
     int ret;
     unsigned int chip_id;
+    unsigned int version_addr;
+    char version[64];
     unsigned int log_setting_addr;
     unsigned int log_addr;
     unsigned int wr;
@@ -80,7 +43,7 @@ int main(int argc, char* argv[])
     SYSTEMTIME time;
     char output_filename[64];
 
-    vs_log_init(LOG_MASK_AV | LOG_MASK_DBG | LOG_MASK_NET, VS_LOG_INFO);
+    vs_log_init(LOG_MASK_AV | LOG_MASK_DBG | LOG_MASK_MISC, VS_LOG_INFO);
 
     if (argc != 3) {
         vs_log(LOG_MASK_AV, VS_LOG_WARNING, usage, __DATE__);
@@ -114,6 +77,25 @@ int main(int argc, char* argv[])
     }
 
     vs_log(LOG_MASK_AV, VS_LOG_MODULE, "Current Log Address: 0x%08x\n", log_addr);
+
+    ret = dbg_avmips_read32(GET_AVMIPS_VERSION, &version_addr, 1);
+    if (0 != ret) {
+        goto END;
+    }
+
+    vs_log(LOG_MASK_AV, VS_LOG_MODULE, "Current version Address: 0x%08x\n", version_addr);
+
+    if (version_addr) {
+        ret = dbg_host_read8(version_addr, (unsigned char *)version, sizeof(version));
+        if (0 != ret) {
+            goto END;
+        }
+
+        vs_log(LOG_MASK_AV, VS_LOG_INFO, "AVMIPS Version: %s\n", version);
+    }
+    else {
+        vs_log(LOG_MASK_AV, VS_LOG_INFO, "AVMIPS Version: not supported\n");
+    }
 
     // Set Log Settings
     ret = dbg_avmips_read32(GET_VIDEO_DEBUG_INFO_PRINTSET, &log_setting_addr, 1);
